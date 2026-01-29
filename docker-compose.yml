@@ -1,0 +1,47 @@
+
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: timetjek-app
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    working_dir: /var/www/html
+    networks:
+      - timetjek
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: timetjek-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - timetjek
+
+  db:
+    image: mariadb:11.3
+    container_name: timetjek-db
+    environment:
+      MYSQL_DATABASE: timetjek
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - timetjek
+
+networks:
+  timetjek:
+
+volumes:
+  dbdata:

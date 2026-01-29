@@ -58,8 +58,15 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT =>
+                    env('DB_SSL_VERIFY', false),
+            ]) : [],
+
+            /*
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+             */
         ],
 
         'mariadb' => [
