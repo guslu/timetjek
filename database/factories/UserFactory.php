@@ -23,10 +23,14 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $digits = fake()->randomElement([10, 12]);
+        $personalNumber = fake()->unique()->numerify(str_repeat('#', $digits));
+
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            'email' => null,
+            'email_verified_at' => null,
+            'personal_number' => $personalNumber,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
