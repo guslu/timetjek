@@ -1,0 +1,38 @@
+Change log – Timetjek v1 implementation
+
+=== Backend ===
+
+- TimeEntry: migration (time_entries table with user_id, started_at, ended_at, GPS fields; indexes on user_id+started_at, user_id+ended_at), model, factory (open/closed states).
+- Migration: make users.email nullable.
+- TimeEntryPolicy: ownership (view/update only own entries).
+- App\Services\TimeEntryService: clock-in (one open entry max), clock-out (closes current open), getOpenEntry(), hasOverlap() (interval logic with null = infinity), update() with overlap and open-entry uniqueness validation.
+- FormRequests: ClockInRequest, ClockOutRequest, UpdateTimeEntryRequest (lat/lng, started_at/ended_at, GPS).
+- TimeEntryResource: API response shape (ISO timestamps, float coords).
+- TimeEntryController: clockIn, clockOut, current (open entry), index (paginate 15, started_at DESC), show, update. All under auth:sanctum.
+- API routes: POST /api/time-entries/clock-in, clock-out; GET /api/time-entries/current, /api/time-entries, /api/time-entries/{id}; PUT /api/time-entries/{id}.
+- UserPasswordController: PUT /api/user/password (current_password, password, password_confirmation).
+- DatabaseSeeder: demo user with personal_number 1234567890, password “password”; email null.
+- UserFactory: personal_number (10 or 12 digits), email null.
+- LoginRequest: removed debug logging; auth by personal_number + password (unchanged).
+- AuthenticationTest: updated to use personal_number instead of email.
+
+=== Frontend (Vue 3 + TypeScript + Vite) ===
+
+- package.json: vue, vue-router, axios, vite, @vitejs/plugin-vue, tailwindcss, typescript, vue-tsc.
+- Vite + Tailwind + PostCSS + tsconfig.
+- resources/views/app.blade.php: SPA shell with @vite.
+- resources/js: app.ts (createApp + router), App.vue (auth loading + router-view), router (login, dashboard, entries, entry-edit, profile; auth/guest guards).
+- API client: axios with withCredentials, baseURL from VITE_API_URL, ensureCsrf() for /sanctum/csrf-cookie.
+- Composables: useAuth (user, loading, fetchUser, login, logout, initAuth), useTimeEntries (openEntry, clockIn, clockOut, fetchOpenEntry, fetchList, fetchOne, updateEntry, listCache), useGeolocation (getPosition, error; non-blocking).
+- Pages: LoginPage (personal_number + password), DashboardPage (clock in/out, status, geolocation notice), EntriesPage (paginated list, links to edit), EntryEditPage (started_at, ended_at; local ↔ UTC), ProfilePage (change password).
+- Utils: date.ts (formatLocalDateTime, toLocalInputValue, fromLocalInputValue for UTC storage / local display).
+- Web routes: GET /, /login, /entries, /entries/{id}, /profile return app view for SPA.
+
+=== Tests ===
+
+- tests/Feature/Api/TimeEntryTest.php: clock-in creates open entry; clock-out closes it; clock-in when open returns 422; clock-out when no open returns 422; update respects overlap (422); update without overlap succeeds; list paginated; guest cannot clock-in; user cannot view another’s entry.
+
+=== Config / Docs ===
+
+- .env.example: VITE_API_URL, note on SANCTUM_STATEFUL_DOMAINS for Vite dev.
+- README: setup (composer, env, migrate, seed, npm, test), demo user credentials, demo flow, API summary, non-goals, Postman note.
