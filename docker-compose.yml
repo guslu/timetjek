@@ -1,16 +1,14 @@
-
-
 services:
   app:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: timetjek-app
+    working_dir: /var/www/html
     volumes:
       - .:/var/www/html
     depends_on:
       - db
-    working_dir: /var/www/html
     networks:
       - timetjek
 
@@ -26,6 +24,22 @@ services:
       - app
     networks:
       - timetjek
+
+  vite:
+    image: node:20
+    container_name: timetjek-vite
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    command: npm run dev -- --host
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_DEV_SERVER_URL: http://localhost:5173
+    networks:
+      - timetjek
+
+
 
   db:
     image: mariadb:11.3
