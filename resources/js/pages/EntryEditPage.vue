@@ -60,20 +60,24 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTimeEntries } from '@/composables/useTimeEntries'
 import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
 import type { FormErrorBag } from '@/utils/forms'
 import { applyAxiosFormErrors, resetFormErrors } from '@/utils/forms'
-import { toLocalInputValue, fromLocalInputValue } from '@/utils/date'
+import { fromLocalInputValue, toLocalInputValue } from '@/utils/date'
 
+// External dependencies
 const route = useRoute()
 const router = useRouter()
 const { logoutAndRedirectToLogin } = useLogoutRedirect()
-const id = computed(() => Number(route.params.id))
 const { fetchOne, updateEntry } = useTimeEntries()
 
+// Derived data
+const entryId = computed(() => Number(route.params.id))
+
+// Local state
 const isLoadingEntry = ref(true)
 const isSavingEntry = ref(false)
 const form = reactive({
@@ -82,22 +86,29 @@ const form = reactive({
 })
 const errors = reactive<FormErrorBag>({})
 
-onMounted(async () => {
-  const entry = await fetchOne(id.value)
-  form.started_at = toLocalInputValue(entry.started_at)
-  form.ended_at = entry.ended_at ? toLocalInputValue(entry.ended_at) : ''
-  isLoadingEntry.value = false
-})
+// Actions
+async function loadEntryForEditing() {
+  isLoadingEntry.value = true
+
+  try {
+    const entry = await fetchOne(entryId.value)
+    form.started_at = toLocalInputValue(entry.started_at)
+    form.ended_at = entry.ended_at ? toLocalInputValue(entry.ended_at) : ''
+  } finally {
+    isLoadingEntry.value = false
+  }
+}
 
 async function handleSubmitEntryEdit() {
   resetFormErrors(errors, ['started_at', 'ended_at'])
   isSavingEntry.value = true
 
   try {
-    await updateEntry(id.value, {
+    await updateEntry(entryId.value, {
       started_at: fromLocalInputValue(form.started_at),
       ended_at: form.ended_at ? fromLocalInputValue(form.ended_at) : null,
     })
+
     router.push({ name: 'entries' })
   } catch (error: unknown) {
     applyAxiosFormErrors(errors, error, {
@@ -111,6 +122,11 @@ async function handleSubmitEntryEdit() {
 async function handleLogout() {
   await logoutAndRedirectToLogin()
 }
+
+// Initialization
+onMounted(async () => {
+  await loadEntryForEditing()
+})
 </script>
 
 <style scoped>

@@ -16,7 +16,7 @@
       <h2 class="page-section-title">Time entries</h2>
       <div v-if="isLoadingEntries" class="loading-text">Loading…</div>
       <template v-else>
-        <ul v-if="entries.length" class="list list--divided">
+        <ul v-if="hasEntries" class="list list--divided">
           <li v-for="entry in entries" :key="entry.id" class="list-item">
             <router-link :to="{ name: 'entry-edit', params: { id: String(entry.id) } }" class="list-item-link">
               <p class="list-item-title">{{ formatLocalDateTime(entry.started_at) }}</p>
@@ -27,23 +27,23 @@
           </li>
         </ul>
         <p v-else class="text-muted">No entries yet.</p>
-        <div v-if="listCache?.meta" class="pagination">
+        <div v-if="hasPagination" class="pagination">
           <button
-            v-if="listCache.meta.current_page > 1"
+            v-if="canGoToPreviousPage"
             type="button"
             class="text-link"
-            @click="goToPage(listCache.meta.current_page - 1)"
+            @click="goToPreviousPage"
           >
             Previous
           </button>
           <span class="pagination-text">
-            Page {{ listCache.meta.current_page }} of {{ listCache.meta.last_page }}
+            Page {{ currentPage }} of {{ lastPage }}
           </span>
           <button
-            v-if="listCache.meta.current_page < listCache.meta.last_page"
+            v-if="canGoToNextPage"
             type="button"
             class="text-link"
-            @click="goToPage(listCache.meta.current_page + 1)"
+            @click="goToNextPage"
           >
             Next
           </button>
@@ -54,33 +54,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useTimeEntries } from '@/composables/useTimeEntries'
 import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
 import { formatLocalDateTime } from '@/utils/date'
 
+// External dependencies
 const { logoutAndRedirectToLogin } = useLogoutRedirect()
 const { fetchList, listCache } = useTimeEntries()
 
+// Local state
 const entries = ref(listCache.value?.data ?? [])
 const isLoadingEntries = ref(true)
 
-onMounted(async () => {
-  const response = await fetchList(1)
-  entries.value = response?.data ?? []
-  isLoadingEntries.value = false
-})
+// Derived data
+const hasEntries = computed(() => entries.value.length > 0)
 
-async function goToPage(page: number) {
+const pagination = computed(() => listCache.value?.meta ?? null)
+const hasPagination = computed(() => pagination.value !== null)
+const currentPage = computed(() => pagination.value?.current_page ?? 1)
+const lastPage = computed(() => pagination.value?.last_page ?? 1)
+
+const canGoToPreviousPage = computed(() => currentPage.value > 1)
+const canGoToNextPage = computed(() => currentPage.value < lastPage.value)
+
+// Actions
+async function loadPage(page: number) {
   isLoadingEntries.value = true
-  const response = await fetchList(page)
-  entries.value = response?.data ?? []
-  isLoadingEntries.value = false
+
+  try {
+    const response = await fetchList(page)
+    entries.value = response?.data ?? []
+  } finally {
+    isLoadingEntries.value = false
+  }
+}
+
+function goToPreviousPage() {
+  if (!canGoToPreviousPage.value) return
+  loadPage(currentPage.value - 1)
+}
+
+function goToNextPage() {
+  if (!canGoToNextPage.value) return
+  loadPage(currentPage.value + 1)
 }
 
 async function handleLogout() {
   await logoutAndRedirectToLogin()
 }
+
+// Initialization
+onMounted(async () => {
+  await loadPage(1)
+})
 </script>
 
 <style scoped>

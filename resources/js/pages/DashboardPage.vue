@@ -69,24 +69,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useTimeEntries } from '@/composables/useTimeEntries'
 import { useGeolocation } from '@/composables/useGeolocation'
 import { formatLocalDateTime } from '@/utils/date'
 import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
 
+// External dependencies
 const { openEntry, isClockedIn, fetchOpenEntry, clockIn, clockOut } = useTimeEntries()
 const { getPosition, error: geoError } = useGeolocation()
 const { logoutAndRedirectToLogin } = useLogoutRedirect()
 
+// Local state
 const isLoadingStatus = ref(true)
 const isClockInInProgress = ref(false)
 const isClockOutInProgress = ref(false)
 
-onMounted(async () => {
-  await fetchOpenEntry()
-  isLoadingStatus.value = false
-})
+// Actions
+async function loadCurrentStatus() {
+  isLoadingStatus.value = true
+
+  try {
+    await fetchOpenEntry()
+  } finally {
+    isLoadingStatus.value = false
+  }
+}
 
 async function handleClockIn() {
   isClockInInProgress.value = true
@@ -94,6 +102,7 @@ async function handleClockIn() {
   try {
     const coords = await getPosition()
     await clockIn(coords?.lat, coords?.lng)
+    await loadCurrentStatus()
   } catch (error: unknown) {
     const axiosLike = error as { response?: { data?: { errors?: Record<string, string[]> } } }
     const fieldErrors = axiosLike.response?.data?.errors
@@ -114,6 +123,7 @@ async function handleClockOut() {
   try {
     const coords = await getPosition()
     await clockOut(coords?.lat, coords?.lng)
+    await loadCurrentStatus()
   } catch (error: unknown) {
     const axiosLike = error as { response?: { data?: { errors?: Record<string, string[]> } } }
     const fieldErrors = axiosLike.response?.data?.errors
@@ -131,6 +141,11 @@ async function handleClockOut() {
 async function handleLogout() {
   await logoutAndRedirectToLogin()
 }
+
+// Initialization
+onMounted(async () => {
+  await loadCurrentStatus()
+})
 </script>
 
 <style scoped>
