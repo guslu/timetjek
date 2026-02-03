@@ -14,7 +14,7 @@
     </header>
     <main class="page-main">
       <h2 class="page-section-title">Change password</h2>
-      <form class="card card--shadow profile-form" @submit.prevent="submit">
+      <form class="card card--shadow profile-form" @submit.prevent="handleChangePassword">
         <div class="form-field">
           <label for="current_password" class="form-label">Current password</label>
           <input
@@ -48,13 +48,13 @@
           />
         </div>
         <p v-if="errors.general" class="form-error">{{ errors.general }}</p>
-        <p v-if="success" class="text-success">Password updated.</p>
+        <p v-if="hasPasswordJustChanged" class="text-success">Password updated.</p>
         <button
           type="submit"
-          :disabled="loading"
+          :disabled="isSubmittingPasswordChange"
           class="btn btn-primary"
         >
-          {{ loading ? 'Updating…' : 'Update password' }}
+          {{ isSubmittingPasswordChange ? 'Updating…' : 'Update password' }}
         </button>
       </form>
     </main>
@@ -63,54 +63,49 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { logout } from '@/composables/useAuth'
 import { api } from '@/api/client'
+import type { FormErrorBag } from '@/utils/forms'
+import { applyAxiosFormErrors, resetFormErrors } from '@/utils/forms'
+import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
 
-const router = useRouter()
-const loading = ref(false)
-const success = ref(false)
+const { logoutAndRedirectToLogin } = useLogoutRedirect()
+
+const isSubmittingPasswordChange = ref(false)
+const hasPasswordJustChanged = ref(false)
 const form = reactive({
   current_password: '',
   password: '',
   password_confirmation: '',
 })
-const errors = reactive<Record<string, string>>({})
+const errors = reactive<FormErrorBag>({})
 
-async function submit() {
-  errors.current_password = ''
-  errors.password = ''
-  errors.general = ''
-  success.value = false
-  loading.value = true
+async function handleChangePassword() {
+  resetFormErrors(errors, ['current_password', 'password'])
+  hasPasswordJustChanged.value = false
+  isSubmittingPasswordChange.value = true
+
   try {
     await api.put('/user/password', {
       current_password: form.current_password,
       password: form.password,
       password_confirmation: form.password_confirmation,
     })
-    success.value = true
+
+    hasPasswordJustChanged.value = true
     form.current_password = ''
     form.password = ''
     form.password_confirmation = ''
-  } catch (e: unknown) {
-    const ax = e as { response?: { data?: { errors?: Record<string, string[]> } } }
-    const data = ax.response?.data?.errors
-    if (data) {
-      for (const [key, msgs] of Object.entries(data)) {
-        if (msgs?.length) (errors as Record<string, string>)[key] = msgs[0]
-      }
-    } else {
-      errors.general = 'Update failed.'
-    }
+  } catch (error: unknown) {
+    applyAxiosFormErrors(errors, error, {
+      defaultMessage: 'Update failed.',
+    })
   } finally {
-    loading.value = false
+    isSubmittingPasswordChange.value = false
   }
 }
 
 async function handleLogout() {
-  await logout()
-  router.replace({ name: 'login' })
+  await logoutAndRedirectToLogin()
 }
 </script>
 

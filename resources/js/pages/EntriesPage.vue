@@ -14,7 +14,7 @@
     </header>
     <main class="page-main">
       <h2 class="page-section-title">Time entries</h2>
-      <div v-if="loading" class="loading-text">Loading…</div>
+      <div v-if="isLoadingEntries" class="loading-text">Loading…</div>
       <template v-else>
         <ul v-if="entries.length" class="list list--divided">
           <li v-for="entry in entries" :key="entry.id" class="list-item">
@@ -32,7 +32,7 @@
             v-if="listCache.meta.current_page > 1"
             type="button"
             class="text-link"
-            @click="goPage(listCache.meta.current_page - 1)"
+            @click="goToPage(listCache.meta.current_page - 1)"
           >
             Previous
           </button>
@@ -43,7 +43,7 @@
             v-if="listCache.meta.current_page < listCache.meta.last_page"
             type="button"
             class="text-link"
-            @click="goPage(listCache.meta.current_page + 1)"
+            @click="goToPage(listCache.meta.current_page + 1)"
           >
             Next
           </button>
@@ -55,32 +55,31 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { logout } from '@/composables/useAuth'
 import { useTimeEntries } from '@/composables/useTimeEntries'
+import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
 import { formatLocalDateTime } from '@/utils/date'
 
-const router = useRouter()
+const { logoutAndRedirectToLogin } = useLogoutRedirect()
 const { fetchList, listCache } = useTimeEntries()
+
 const entries = ref(listCache.value?.data ?? [])
-const loading = ref(true)
+const isLoadingEntries = ref(true)
 
 onMounted(async () => {
-  const res = await fetchList(1)
-  entries.value = res?.data ?? []
-  loading.value = false
+  const response = await fetchList(1)
+  entries.value = response?.data ?? []
+  isLoadingEntries.value = false
 })
 
-async function goPage(page: number) {
-  loading.value = true
-  const res = await fetchList(page)
-  entries.value = res?.data ?? []
-  loading.value = false
+async function goToPage(page: number) {
+  isLoadingEntries.value = true
+  const response = await fetchList(page)
+  entries.value = response?.data ?? []
+  isLoadingEntries.value = false
 }
 
 async function handleLogout() {
-  await logout()
-  router.replace({ name: 'login' })
+  await logoutAndRedirectToLogin()
 }
 </script>
 

@@ -28,7 +28,7 @@
       <div class="card">
         <h2 class="card-title">Current status</h2>
 
-        <div v-if="loading" class="muted">
+        <div v-if="isLoadingStatus" class="muted">
           Loading…
         </div>
 
@@ -41,11 +41,11 @@
 
             <button
               type="button"
-              :disabled="clockOutLoading"
+              :disabled="isClockOutInProgress"
               class="btn btn-danger"
-              @click="doClockOut"
+              @click="handleClockOut"
             >
-              {{ clockOutLoading ? 'Clocking out…' : 'Clock out' }}
+              {{ isClockOutInProgress ? 'Clocking out…' : 'Clock out' }}
             </button>
           </div>
 
@@ -54,11 +54,11 @@
 
             <button
               type="button"
-              :disabled="clockInLoading"
+              :disabled="isClockInInProgress"
               class="btn btn-primary"
-              @click="doClockIn"
+              @click="handleClockIn"
             >
-              {{ clockInLoading ? 'Clocking in…' : 'Clock in' }}
+              {{ isClockInInProgress ? 'Clocking in…' : 'Clock in' }}
             </button>
           </div>
         </template>
@@ -70,58 +70,66 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { logout } from '@/composables/useAuth'
 import { useTimeEntries } from '@/composables/useTimeEntries'
 import { useGeolocation } from '@/composables/useGeolocation'
 import { formatLocalDateTime } from '@/utils/date'
+import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
 
-const router = useRouter()
 const { openEntry, isClockedIn, fetchOpenEntry, clockIn, clockOut } = useTimeEntries()
 const { getPosition, error: geoError } = useGeolocation()
+const { logoutAndRedirectToLogin } = useLogoutRedirect()
 
-const loading = ref(true)
-const clockInLoading = ref(false)
-const clockOutLoading = ref(false)
+const isLoadingStatus = ref(true)
+const isClockInInProgress = ref(false)
+const isClockOutInProgress = ref(false)
 
 onMounted(async () => {
   await fetchOpenEntry()
-  loading.value = false
+  isLoadingStatus.value = false
 })
 
-async function doClockIn() {
-  clockInLoading.value = true
+async function handleClockIn() {
+  isClockInInProgress.value = true
+
   try {
     const coords = await getPosition()
     await clockIn(coords?.lat, coords?.lng)
-  } catch (e: unknown) {
-    const ax = e as { response?: { data?: { errors?: Record<string, string[]> } } }
-    const errs = ax.response?.data?.errors
-    if (errs?.clock?.length) alert(errs.clock[0])
-    else alert('Clock-in failed.')
+  } catch (error: unknown) {
+    const axiosLike = error as { response?: { data?: { errors?: Record<string, string[]> } } }
+    const fieldErrors = axiosLike.response?.data?.errors
+
+    if (fieldErrors?.clock?.length) {
+      alert(fieldErrors.clock[0])
+    } else {
+      alert('Clock-in failed.')
+    }
   } finally {
-    clockInLoading.value = false
+    isClockInInProgress.value = false
   }
 }
 
-async function doClockOut() {
-  clockOutLoading.value = true
+async function handleClockOut() {
+  isClockOutInProgress.value = true
+
   try {
     const coords = await getPosition()
     await clockOut(coords?.lat, coords?.lng)
-  } catch (e: unknown) {
-    const ax = e as { response?: { data?: { errors?: Record<string, string[]> } } }
-    const errs = ax.response?.data?.errors
-    if (errs?.clock?.length) alert(errs.clock[0])
-    else alert('Clock-out failed.')
+  } catch (error: unknown) {
+    const axiosLike = error as { response?: { data?: { errors?: Record<string, string[]> } } }
+    const fieldErrors = axiosLike.response?.data?.errors
+
+    if (fieldErrors?.clock?.length) {
+      alert(fieldErrors.clock[0])
+    } else {
+      alert('Clock-out failed.')
+    }
   } finally {
-    clockOutLoading.value = false
+    isClockOutInProgress.value = false
   }
 }
 
 async function handleLogout() {
-  await logout()
-  router.replace({ name: 'login' })
+  await logoutAndRedirectToLogin()
 }
 </script>
 

@@ -17,8 +17,8 @@
       <div>
         <router-link :to="{ name: 'entries' }" class="page-back-link">← Back to entries</router-link>
       </div>
-      <div v-if="loading" class="loading-text">Loading…</div>
-      <form v-else class="card card--shadow edit-form" @submit.prevent="submit">
+      <div v-if="isLoadingEntry" class="loading-text">Loading…</div>
+      <form v-else class="card card--shadow edit-form" @submit.prevent="handleSubmitEntryEdit">
         <h2 class="page-section-title">Edit time entry</h2>
         <div class="form-field">
           <label for="started_at" class="form-label">Start</label>
@@ -45,10 +45,10 @@
         <div class="edit-actions">
           <button
             type="submit"
-            :disabled="saving"
+            :disabled="isSavingEntry"
             class="btn btn-primary"
           >
-            {{ saving ? 'Saving…' : 'Save' }}
+            {{ isSavingEntry ? 'Saving…' : 'Save' }}
           </button>
           <router-link :to="{ name: 'entries' }" class="btn btn-secondary">
             Cancel
@@ -62,56 +62,54 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { logout } from '@/composables/useAuth'
 import { useTimeEntries } from '@/composables/useTimeEntries'
+import { useLogoutRedirect } from '@/composables/useLogoutRedirect'
+import type { FormErrorBag } from '@/utils/forms'
+import { applyAxiosFormErrors, resetFormErrors } from '@/utils/forms'
 import { toLocalInputValue, fromLocalInputValue } from '@/utils/date'
 
 const route = useRoute()
 const router = useRouter()
+const { logoutAndRedirectToLogin } = useLogoutRedirect()
 const id = computed(() => Number(route.params.id))
 const { fetchOne, updateEntry } = useTimeEntries()
 
-const loading = ref(true)
-const saving = ref(false)
-const form = reactive({ started_at: '', ended_at: '' })
-const errors = reactive<Record<string, string>>({})
+const isLoadingEntry = ref(true)
+const isSavingEntry = ref(false)
+const form = reactive({
+  started_at: '',
+  ended_at: '',
+})
+const errors = reactive<FormErrorBag>({})
 
 onMounted(async () => {
   const entry = await fetchOne(id.value)
   form.started_at = toLocalInputValue(entry.started_at)
   form.ended_at = entry.ended_at ? toLocalInputValue(entry.ended_at) : ''
-  loading.value = false
+  isLoadingEntry.value = false
 })
 
-async function submit() {
-  errors.started_at = ''
-  errors.ended_at = ''
-  errors.general = ''
-  saving.value = true
+async function handleSubmitEntryEdit() {
+  resetFormErrors(errors, ['started_at', 'ended_at'])
+  isSavingEntry.value = true
+
   try {
     await updateEntry(id.value, {
       started_at: fromLocalInputValue(form.started_at),
       ended_at: form.ended_at ? fromLocalInputValue(form.ended_at) : null,
     })
     router.push({ name: 'entries' })
-  } catch (e: unknown) {
-    const ax = e as { response?: { data?: { errors?: Record<string, string[]> } } }
-    const data = ax.response?.data?.errors
-    if (data) {
-      for (const [key, msgs] of Object.entries(data)) {
-        if (msgs?.length) (errors as Record<string, string>)[key] = msgs[0]
-      }
-    } else {
-      errors.general = 'Update failed.'
-    }
+  } catch (error: unknown) {
+    applyAxiosFormErrors(errors, error, {
+      defaultMessage: 'Update failed.',
+    })
   } finally {
-    saving.value = false
+    isSavingEntry.value = false
   }
 }
 
 async function handleLogout() {
-  await logout()
-  router.replace({ name: 'login' })
+  await logoutAndRedirectToLogin()
 }
 </script>
 

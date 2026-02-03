@@ -5,7 +5,7 @@
       <p class="page-subtitle">Sign in with your personal number</p>
     </div>
     <div class="card card--narrow card--shadow login-card">
-      <form class="form form--stacked" @submit.prevent="submit">
+      <form class="form form--stacked" @submit.prevent="handleSubmitLogin">
         <div class="form-field">
           <label for="personal_number" class="form-label">Personal number</label>
           <input
@@ -34,12 +34,8 @@
           <p v-if="errors.password" class="form-error">{{ errors.password }}</p>
         </div>
         <p v-if="errors.general" class="form-error">{{ errors.general }}</p>
-        <button
-          type="submit"
-          :disabled="loading"
-          class="btn btn-primary btn--full"
-        >
-          {{ loading ? 'Signing in…' : 'Sign in' }}
+        <button type="submit" :disabled="isSubmittingLogin" class="btn btn-primary btn--full">
+          {{ isSubmittingLogin ? 'Signing in…' : 'Sign in' }}
         </button>
       </form>
     </div>
@@ -50,32 +46,31 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '@/composables/useAuth'
+import type { FormErrorBag } from '@/utils/forms'
+import { applyAxiosFormErrors, resetFormErrors } from '@/utils/forms'
 
 const router = useRouter()
-const loading = ref(false)
-const form = reactive({ personal_number: '', password: '' })
-const errors = reactive<Record<string, string>>({})
 
-async function submit() {
-  errors.personal_number = ''
-  errors.password = ''
-  errors.general = ''
-  loading.value = true
+const isSubmittingLogin = ref(false)
+const form = reactive({
+  personal_number: '',
+  password: '',
+})
+const errors = reactive<FormErrorBag>({})
+
+async function handleSubmitLogin() {
+  resetFormErrors(errors, ['personal_number', 'password'])
+  isSubmittingLogin.value = true
+
   try {
     await login(form.personal_number, form.password)
     router.replace({ name: 'dashboard' })
-  } catch (e: unknown) {
-    const ax = e as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } }
-    const data = ax.response?.data
-    if (data?.errors) {
-      for (const [key, msgs] of Object.entries(data.errors)) {
-        if (msgs?.length) (errors as Record<string, string>)[key] = msgs[0]
-      }
-    } else {
-      errors.general = data?.message || 'Login failed.'
-    }
+  } catch (error: unknown) {
+    applyAxiosFormErrors(errors, error, {
+      defaultMessage: 'Login failed.',
+    })
   } finally {
-    loading.value = false
+    isSubmittingLogin.value = false
   }
 }
 </script>
