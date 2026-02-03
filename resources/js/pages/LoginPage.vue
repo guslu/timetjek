@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8 bg-gray-50">
-    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-      <h1 class="text-2xl font-semibold text-center text-gray-900">Timetjek</h1>
-      <p class="mt-1 text-center text-sm text-gray-600">Sign in with your personal number</p>
+  <div class="page page--centered">
+    <div class="card card--narrow card--shadow login-header">
+      <h1 class="page-title-main">Timetjek</h1>
+      <p class="page-subtitle">Sign in with your personal number</p>
     </div>
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
-      <form class="space-y-5" @submit.prevent="submit">
-        <div>
-          <label for="personal_number" class="block text-sm font-medium text-gray-700">Personal number</label>
+    <div class="card card--narrow card--shadow login-card">
+      <form class="form form--stacked" @submit.prevent="submit">
+        <div class="form-field">
+          <label for="personal_number" class="form-label">Personal number</label>
           <input
             id="personal_number"
             v-model="form.personal_number"
@@ -15,29 +15,29 @@
             inputmode="numeric"
             autocomplete="username"
             required
-            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            :class="{ 'border-red-500': errors.personal_number }"
+            class="form-input"
+            :class="{ 'form-input--error': errors.personal_number }"
           />
-          <p v-if="errors.personal_number" class="mt-1 text-sm text-red-600">{{ errors.personal_number }}</p>
+          <p v-if="errors.personal_number" class="form-error">{{ errors.personal_number }}</p>
         </div>
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <div class="form-field">
+          <label for="password" class="form-label">Password</label>
           <input
             id="password"
             v-model="form.password"
             type="password"
             autocomplete="current-password"
             required
-            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            :class="{ 'border-red-500': errors.password }"
+            class="form-input"
+            :class="{ 'form-input--error': errors.password }"
           />
-          <p v-if="errors.password" class="mt-1 text-sm text-red-600">{{ errors.password }}</p>
+          <p v-if="errors.password" class="form-error">{{ errors.password }}</p>
         </div>
-        <p v-if="errors.general" class="text-sm text-red-600">{{ errors.general }}</p>
+        <p v-if="errors.general" class="form-error">{{ errors.general }}</p>
         <button
           type="submit"
           :disabled="loading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          class="btn btn-primary btn--full"
         >
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
@@ -79,3 +79,14 @@ async function submit() {
   }
 }
 </script>
+
+<style scoped>
+.login-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-card {
+  margin-top: 0;
+}
+</style>
