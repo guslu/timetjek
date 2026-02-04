@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\UserPasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Health check for load balancers and deployment (no auth, no throttle)
+Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('api.health');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/user', fn (Request $request) => $request->user());
 
     Route::controller(UserPasswordController::class)->group(function () {

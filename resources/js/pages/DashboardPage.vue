@@ -149,135 +149,18 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Root */
-.dashboard {
-  min-height: 100vh;
-  background: #f9fafb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Header */
-.dashboard-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.header-inner {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.app-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-/* Navigation */
-.nav {
-  display: flex;
-  gap: 1rem;
-}
-
-.nav-link {
-  font-size: 0.875rem;
-  color: #4f46e5;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.nav-link:hover {
-  text-decoration: underline;
-}
-
-.button-link {
-  padding: 0;
-}
-
-/* Main */
-.dashboard-main {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
-}
-
-/* Card */
-.card {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-/* Status */
 .status {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
+.status .btn {
+  margin-top: 0.5rem;
+}
+
 .status-in {
   color: #15803d;
   font-weight: 500;
-}
-
-/* Text helpers */
-.muted {
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-/* Alert */
-.alert {
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #92400e;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-}
-
-/* Buttons */
-.btn {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  color: #ffffff;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: #4f46e5;
-}
-
-.btn-primary:hover {
-  background: #4338ca;
-}
-
-.btn-danger {
-  background: #dc2626;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
 }
 </style>

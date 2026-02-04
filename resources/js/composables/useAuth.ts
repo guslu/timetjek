@@ -57,3 +57,12 @@ export async function logout() {
   user.value = null
   initialized.value = true
 }
+
+/**
+ * Clear auth state without calling the logout API (e.g. when the server returns 401).
+ * Next route guard will treat the user as unauthenticated and redirect to login.
+ */
+export function clearAuthState(): void {
+  user.value = null
+  initialized.value = true
+}

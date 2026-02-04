@@ -13,6 +13,26 @@ export const api = axios.create({
   },
 })
 
+let onUnauthorized: (() => void) | null = null
+
+/**
+ * Register a handler to run when any API request returns 401 (e.g. session expired).
+ * Called from app.ts after the router is available so we can redirect to login.
+ */
+export function setUnauthorizedHandler(handler: () => void): void {
+  onUnauthorized = handler
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && onUnauthorized) {
+      onUnauthorized()
+    }
+    return Promise.reject(error)
+  }
+)
+
 // CSRF helper (Sanctum requirement)
 export async function ensureCsrf(): Promise<void> {
   const base = apiOrigin ? apiOrigin.replace(/\/$/, '') : ''
