@@ -81,6 +81,7 @@
 import { computed, onMounted, ref } from 'vue'
 import AppLayout from '@/components/AppLayout.vue'
 import { useTimeEntries } from '@/composables/useTimeEntries'
+import type { TimeEntry } from '@/types'
 import {
   entryDurationMinutes,
   formatDurationShort,
@@ -88,15 +89,9 @@ import {
   formatTodayLabel,
 } from '@/utils/date'
 
-interface Entry {
-  id: number
-  started_at: string
-  ended_at: string | null
-}
-
 const { fetchList, listCache } = useTimeEntries()
 
-const entries = ref<Entry[]>([])
+const entries = ref<TimeEntry[]>([])
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 
@@ -110,7 +105,7 @@ const totalTimeLabel = computed(() => {
   return formatDurationShort(total)
 })
 
-function entryDurationLabel(entry: Entry): string {
+function entryDurationLabel(entry: TimeEntry): string {
   const min = entryDurationMinutes(entry.started_at, entry.ended_at)
   return formatDurationShort(min)
 }

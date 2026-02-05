@@ -99,8 +99,3 @@ function handleChangePassword() {
 }
 </script>
 
-<style scoped>
-.profile-form {
-  max-width: 28rem;
-}
-</style>

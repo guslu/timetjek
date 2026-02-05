@@ -54,17 +54,11 @@ router.beforeEach(async (to) => {
     }
   }
 
-  // ✅ Explicit, safe auth check
-  const isAuthenticated =
-    auth.user.value !== null &&
-    typeof auth.user.value === 'object' &&
-    'id' in auth.user.value
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !auth.isAuthenticated.value) {
     return { name: 'login' }
   }
 
-  if (to.meta.guest && isAuthenticated) {
+  if (to.meta.guest && auth.isAuthenticated.value) {
     return { name: 'dashboard' }
   }
 })

@@ -1,44 +1,11 @@
+import type { Ref } from 'vue'
+
 export type FormErrorBag = Record<string, string>
 
-interface ApplyAxiosFormErrorsOptions {
-  /**
-   * Key used for generic, non-field-specific errors.
-   * Defaults to "general".
-   */
-  generalKey?: string
-
-  /**
-   * Fallback message when the response does not contain a helpful message.
-   */
-  defaultMessage: string
-}
-
-/**
- * Clears the given field error keys plus the generic error key.
- */
-export function resetFormErrors(
-  errorBag: FormErrorBag,
-  fieldKeys: string[],
-  options: { generalKey?: string } = {},
-): void {
-  const generalKey = options.generalKey ?? 'general'
-
-  for (const key of fieldKeys) {
-    errorBag[key] = ''
-  }
-
-  if (generalKey) {
-    errorBag[generalKey] = ''
-  }
-}
-
-/**
- * Maps a typical Laravel / Axios validation error response onto a local error bag.
- */
-export function applyAxiosFormErrors(
+function applyAxiosFormErrors(
   errorBag: FormErrorBag,
   error: unknown,
-  options: ApplyAxiosFormErrorsOptions,
+  options: { generalKey?: string; defaultMessage: string },
 ): void {
   const generalKey = options.generalKey ?? 'general'
 
@@ -67,6 +34,41 @@ export function applyAxiosFormErrors(
     errorBag[generalKey] = data.message
   } else {
     errorBag[generalKey] = options.defaultMessage
+  }
+}
+
+export function getFirstValidationMessage(
+  error: unknown,
+  field: string,
+  fallback: string
+): string {
+  const axiosLike = error as {
+    response?: { data?: { errors?: Record<string, string[]> } }
+  }
+  const messages = axiosLike.response?.data?.errors?.[field]
+  if (messages && messages.length > 0) {
+    return messages[0]
+  }
+  return fallback
+}
+
+export async function submitWithFormErrors(
+  errorBag: FormErrorBag,
+  options: { fieldKeys: string[]; defaultMessage: string },
+  isSubmitting: Ref<boolean>,
+  submitFn: () => Promise<void>
+): Promise<void> {
+  for (const key of options.fieldKeys) {
+    errorBag[key] = ''
+  }
+  errorBag['general'] = ''
+  isSubmitting.value = true
+  try {
+    await submitFn()
+  } catch (error: unknown) {
+    applyAxiosFormErrors(errorBag, error, { defaultMessage: options.defaultMessage })
+  } finally {
+    isSubmitting.value = false
   }
 }
 

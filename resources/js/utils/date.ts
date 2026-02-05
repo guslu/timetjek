@@ -1,21 +1,3 @@
-export function formatLocalDateTime(iso: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  return d.toLocaleString(undefined, {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  })
-}
-
-export function formatLocalTime(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleTimeString(undefined, { timeStyle: 'short' })
-}
-
-export function toUTCISO(date: Date): string {
-  return date.toISOString()
-}
-
 export function toLocalInputValue(iso: string | null): string {
   if (!iso) return ''
   const d = new Date(iso)

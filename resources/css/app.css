@@ -122,7 +122,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.app-root {
+#app {
   min-height: 100vh;
 }
 
@@ -140,6 +140,7 @@ body {
    LAYOUT — Page structure and rhythm
    --------------------------------------------------------------------------- */
 .page {
+  position: relative;
   min-height: 100vh;
   background-color: var(--color-background);
 }
@@ -153,12 +154,27 @@ body {
 }
 
 .page > header {
-  background-color: #f8fafc;
+  background-color: #ffffff;
   border-bottom: 1px solid var(--color-border);
-  border-top: 3px solid var(--color-primary);
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.page > header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    #15a8a1,
+    #1d7cc0,
+    #3d9ee0,
+    #1d7cc0
+  );
 }
 
 .page > header > div {
@@ -203,21 +219,18 @@ body {
 }
 
 .page > main {
+  position: relative;
+  z-index: 1;
   max-width: 64rem;
   margin: 0 auto;
   padding: var(--space-8) var(--space-6);
 }
 
-/* Staggered enter: children get animation-delay for “reveal on load”. */
-.page-content {
-  /* Wrapper for content that can animate in. */
-}
-
 .reveal {
   opacity: 0;
   transform: translateY(0.5rem);
-  transition: opacity var(--duration-slow) var(--ease-out-expo),
-              transform var(--duration-slow) var(--ease-out-expo);
+  transition: opacity 180ms var(--ease-out-expo),
+              transform 180ms var(--ease-out-expo);
 }
 
 .reveal.is-visible {
@@ -236,17 +249,17 @@ body {
 .reveal-stagger > * {
   opacity: 0;
   transform: translateY(0.5rem);
-  transition: opacity var(--duration-slow) var(--ease-out-expo),
-              transform var(--duration-slow) var(--ease-out-expo);
+  transition: opacity 180ms var(--ease-out-expo),
+              transform 180ms var(--ease-out-expo);
 }
 
 .reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
-.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 50ms; }
-.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 100ms; }
-.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 150ms; }
-.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 200ms; }
-.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 250ms; }
-.reveal-stagger.is-visible > *:nth-child(n+7) { transition-delay: 300ms; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 30ms; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 60ms; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 90ms; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 120ms; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 150ms; }
+.reveal-stagger.is-visible > *:nth-child(n+7) { transition-delay: 180ms; }
 
 .reveal-stagger.is-visible > * {
   opacity: 1;
@@ -803,8 +816,8 @@ button.link:focus-visible {
    --------------------------------------------------------------------------- */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-out-quad),
-              transform var(--duration-normal) var(--ease-out-quad);
+  transition: opacity 200ms var(--ease-out-quad),
+              transform 200ms var(--ease-out-quad);
 }
 
 .page-enter-from {
