@@ -69,3 +69,34 @@ export function formatStartedAt(iso: string | null): string {
   const min = String(d.getMinutes()).padStart(2, '0')
   return `${y}-${m}-${day} ${h}:${min}`
 }
+
+/** Time only for list display, e.g. "01:07". */
+export function formatTimeOnly(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** Duration in minutes between start and end (or now if end is null). */
+export function entryDurationMinutes(started_at: string, ended_at: string | null): number {
+  const start = new Date(started_at).getTime()
+  const end = ended_at ? new Date(ended_at).getTime() : Date.now()
+  return Math.max(0, Math.floor((end - start) / 60000))
+}
+
+/** Format minutes as "19 min" or "1h 32m". */
+export function formatDurationShort(totalMinutes: number): string {
+  if (totalMinutes < 60) return `${totalMinutes} min`
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  return m > 0 ? `${h}h ${m}m` : `${h}h`
+}
+
+/** "Today • Feb 5, 2026" for header. */
+export function formatTodayLabel(): string {
+  const d = new Date()
+  const mon = d.toLocaleString(undefined, { month: 'short' })
+  const day = d.getDate()
+  const year = d.getFullYear()
+  return `Today • ${mon} ${day}, ${year}`
+}
