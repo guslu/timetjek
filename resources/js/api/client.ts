@@ -19,7 +19,7 @@ let onUnauthorized: (() => void) | null = null
  * Register a handler to run when any API request returns 401 (e.g. session expired).
  * Called from app.ts after the router is available so we can redirect to login.
  */
-export function setUnauthorizedHandler(handler: () => void): void {
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
   onUnauthorized = handler
 }
 

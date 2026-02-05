@@ -10,7 +10,7 @@ const initialized = ref(false)
 async function fetchUser() {
   loading.value = true
   try {
-    const { data } = await api.get<User>('/user')
+    const { data } = await api.get<User>('/api/user')
     user.value = data
   } catch (e: any) {
     // 401 = not logged in (expected)
@@ -65,4 +65,11 @@ export async function logout() {
 export function clearAuthState(): void {
   user.value = null
   initialized.value = true
+}
+
+/** Reset module state for test isolation. Not used in production. */
+export function resetAuthState(): void {
+  user.value = null
+  loading.value = false
+  initialized.value = false
 }

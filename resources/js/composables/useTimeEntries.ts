@@ -9,7 +9,7 @@ const listCache = ref<TimeEntryListResponse | null>(null)
 export function useTimeEntries() {
   async function fetchOpenEntry() {
     try {
-      const { data } = await api.get<{ data: TimeEntry | null }>('/time-entries/current')
+      const { data } = await api.get<{ data: TimeEntry | null }>('/api/time-entries/current')
       openEntry.value = data.data ?? null
     } catch {
       openEntry.value = null
@@ -20,31 +20,31 @@ export function useTimeEntries() {
 
   async function clockIn(lat?: number, lng?: number) {
     const payload = lat != null && lng != null ? { lat, lng } : {}
-    const { data } = await api.post<{ data: TimeEntry }>('/time-entries/clock-in', payload)
+    const { data } = await api.post<{ data: TimeEntry }>('/api/time-entries/clock-in', payload)
     openEntry.value = data.data
     return data.data
   }
 
   async function clockOut(lat?: number, lng?: number) {
     const payload = lat != null && lng != null ? { lat, lng } : {}
-    const { data } = await api.post<{ data: TimeEntry }>('/time-entries/clock-out', payload)
+    const { data } = await api.post<{ data: TimeEntry }>('/api/time-entries/clock-out', payload)
     openEntry.value = null
     return data.data
   }
 
   async function fetchList(page = 1) {
-    const { data } = await api.get<TimeEntryListResponse>('/time-entries', { params: { page } })
+    const { data } = await api.get<TimeEntryListResponse>('/api/time-entries', { params: { page } })
     listCache.value = data
     return data
   }
 
   async function fetchOne(id: number) {
-    const { data } = await api.get<{ data: TimeEntry }>(`/time-entries/${id}`)
+    const { data } = await api.get<{ data: TimeEntry }>(`/api/time-entries/${id}`)
     return data.data
   }
 
   async function updateEntry(id: number, payload: Partial<TimeEntry>) {
-    const { data } = await api.put<{ data: TimeEntry }>(`/time-entries/${id}`, payload)
+    const { data } = await api.put<{ data: TimeEntry }>(`/api/time-entries/${id}`, payload)
     if (openEntry.value?.id === id) {
       openEntry.value = data.data.ended_at == null ? data.data : null
     }
@@ -62,4 +62,10 @@ export function useTimeEntries() {
     updateEntry,
     listCache,
   }
+}
+
+/** Reset module state for test isolation. Not used in production. */
+export function resetTimeEntriesState(): void {
+  openEntry.value = null
+  listCache.value = null
 }
