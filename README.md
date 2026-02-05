@@ -11,6 +11,14 @@ Personnel time registration web application. Employees register working time (cl
 
 ## Setup
 
+**Quick setup (after cloning):**
+```bash
+chmod +x setup.sh && ./setup.sh
+```
+Then start the app (see “Run the app” below). If you use Docker, run the same steps inside the app container or use `docker compose up -d` after configuring `.env` for Docker.
+
+**Manual setup:**
+
 1. **Clone and install PHP dependencies**
    ```bash
    composer install
@@ -43,7 +51,7 @@ Personnel time registration web application. Employees register working time (cl
    npm install
    npm run build
    ```
-   For development: run `npm run dev` (Vite on port 5173) and in another terminal `php artisan serve` (Laravel on 8000). Open `http://localhost:5173` and ensure `VITE_API_URL` and Sanctum stateful domains are set as above.
+   For development: run `npm run dev` (Vite on port 5173) and in another terminal `php artisan serve` (Laravel on 8000). **Open `http://localhost:8000`** (Laravel serves the page; Vite provides hot-reload). Ensure `VITE_API_URL=http://localhost:8000` and `SANCTUM_STATEFUL_DOMAINS` include `localhost,localhost:8000`.
 
 6. **Run tests**
    ```bash
@@ -51,9 +59,17 @@ Personnel time registration web application. Employees register working time (cl
    ```
    (Use PHP 8.3+; if using Docker, run these inside the app container.)
 
+## Run the app
+
+- **Local (one command):** `chmod +x run.sh && ./run.sh` — uses `.env` (SQLite by default in `.env.example`), runs migrate/seed, then starts PHP and Vite. Open **http://localhost:8000**. Stop with Ctrl+C.
+- **Local (manual):** `php artisan serve` in one terminal, `npm run dev` in another; open **http://localhost:8000**.
+- **Docker:** Ensure `.env` has `DB_HOST=db` and MySQL settings, then `docker compose up -d` and open **http://localhost:8000**.
+
+If you use MySQL locally (no Docker), set `DB_CONNECTION=mysql` and `DB_*` in `.env` before migrating or running.
+
 ## Demo flow
 
-1. Open the app (browser at `http://localhost:5173` in dev or your Laravel URL if serving built assets).
+1. Open the app in the browser at **`http://localhost:8000`** (or your Laravel URL).
 2. **Login** with personal number `1234567890` and password `password`.
 3. **Dashboard**: Clock in (optionally with geolocation). Status shows “Clocked in” and start time. Clock out when done.
 4. **Entries**: View paginated list of your time entries. Click an entry to edit.
